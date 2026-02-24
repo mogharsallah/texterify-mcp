@@ -15,6 +15,12 @@ export function registerListLanguages(server: McpServer, config: Config): void {
     {
       description:
         "List languages configured in the Texterify project. Use this to get language IDs required by set_translation and to check translation progress per language. The response includes: `data` (languages with name, is_default flag, progress as 0-100 percentage of translated keys, and supports_plural_* flags indicating which CLDR plural forms apply), `included` (country_code and language_code with their codes), and `meta.total`. The language marked is_default is the primary language of the project.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: listLanguagesInputSchema,
     },
     withErrorHandling(operation, async (args) => {

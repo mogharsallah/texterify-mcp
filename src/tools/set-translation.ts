@@ -14,6 +14,12 @@ export function registerSetTranslation(server: McpServer, config: Config): void 
     {
       description:
         "Set the translated text for a specific key in a specific language (upsert). If a translation already exists for the key+language pair it is updated; otherwise a new translation is created. Requires both a key_id (from list_keys, get_key, or create_key) and a language_id (from list_languages). For keys with pluralization_enabled, provide plural forms alongside the main content — which forms to use depends on the target language's CLDR plural rules (check the language's supports_plural_* flags from list_languages). Typical workflow: list_languages to get language_id -> set_translation for each language.",
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: setTranslationInputSchema,
     },
     withErrorHandling(operation, async (args) => {

@@ -20,6 +20,12 @@ export function registerCreateKey(server: McpServer, config: Config): void {
     {
       description:
         'Create a new translation key (i18n string identifier) in the configured Texterify project. This only creates the key entry — it does NOT add any translated content. After creating a key, call set_translation for each language to add translations. Key names must be unique within the project; duplicate names return a validation error with code "TAKEN". Typical workflow: create_key -> list_languages -> set_translation for each language.',
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: true,
+      },
       inputSchema: createKeyInputSchema,
     },
     withErrorHandling(operation, async (args) => {

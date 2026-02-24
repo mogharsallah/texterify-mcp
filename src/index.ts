@@ -20,6 +20,10 @@ async function main(): Promise<void> {
 
   const server = new McpServer({
     name: "texterify-mcp",
+    websiteUrl: "https://texterify.com",
+    title: "Texterify MCP",
+    description:
+      "Manage Texterify translation projects — list, create, update, and delete translation keys and their translations across languages.",
     version,
   })
 

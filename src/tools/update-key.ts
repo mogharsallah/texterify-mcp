@@ -19,6 +19,12 @@ export function registerUpdateKey(server: McpServer, config: Config): void {
     {
       description:
         'Update an existing translation key\'s metadata: name, description, or HTML/pluralization settings. Only the fields you provide are changed — omitted fields stay as-is. Important: this does NOT modify translations. Use set_translation to change translated content. Returns { "message": "Key updated" } on success (not the full key object — call get_key afterward if you need the updated key data).',
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: updateKeyInputSchema,
     },
     withErrorHandling(operation, async (args) => {

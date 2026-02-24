@@ -14,6 +14,12 @@ export function registerDeleteKeys(server: McpServer, config: Config): void {
     {
       description:
         'Permanently delete one or more translation keys and ALL their associated translations from the configured Texterify project. This action is irreversible — the keys, all their translations across every language, and any tag associations are destroyed. Returns { "message": "Keys deleted" } on success. Use list_keys first to verify which keys you are deleting.',
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: deleteKeysInputSchema,
     },
     withErrorHandling(operation, async (args) => {

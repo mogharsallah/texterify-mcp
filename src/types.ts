@@ -382,6 +382,85 @@ export const setTranslationInputSchema = z.object({
     ),
 })
 
+const translationEntrySchema = z.object({
+  language_code: z
+    .string()
+    .min(1)
+    .describe(
+      "The language code (e.g., 'en', 'de', 'fr') identifying the target language. Must match a language_code configured in the project (see list_languages included[].attributes.code)",
+    ),
+  content: z
+    .string()
+    .min(1)
+    .describe(
+      "The translated text. This is the main translation value and also serves as the 'other' plural form when pluralization is enabled on the key",
+    ),
+  zero: z
+    .string()
+    .optional()
+    .describe(
+      "CLDR plural form for zero quantity (e.g., 'No items'). Only relevant when pluralization_enabled is true and the language supports this form",
+    ),
+  one: z
+    .string()
+    .optional()
+    .describe(
+      "CLDR plural form for singular quantity (e.g., '1 item'). Only relevant when pluralization_enabled is true and the language supports this form",
+    ),
+  two: z
+    .string()
+    .optional()
+    .describe(
+      "CLDR plural form for dual quantity (e.g., '2 items'). Only relevant for languages with a dual form (e.g., Arabic, Slovenian)",
+    ),
+  few: z
+    .string()
+    .optional()
+    .describe(
+      "CLDR plural form for few quantity (e.g., '3 items'). Only relevant for languages with a paucal form (e.g., Polish, Czech, Arabic)",
+    ),
+  many: z
+    .string()
+    .optional()
+    .describe(
+      "CLDR plural form for many quantity (e.g., '5 items'). Only relevant for languages with this form (e.g., Polish, Arabic, Welsh)",
+    ),
+})
+
+export const createKeyWithTranslationsInputSchema = z.object({
+  project_id: projectIdField,
+  name: z
+    .string()
+    .min(1)
+    .describe(
+      "The key name used as the i18n identifier in source code, typically in snake_case or dot.notation (e.g., 'welcome_message', 'auth.login.title'). Must be unique within the project",
+    ),
+  description: z
+    .string()
+    .optional()
+    .describe(
+      "Optional human-readable description to help translators understand the context (e.g., 'Greeting shown on the homepage header'). This is not the translation — it's metadata about where/how the key is used",
+    ),
+  html_enabled: z
+    .boolean()
+    .optional()
+    .describe(
+      "Set to true if translation values for this key contain HTML markup. When enabled, the Texterify UI shows a rich text editor for translators. Defaults to false",
+    ),
+  pluralization_enabled: z
+    .boolean()
+    .optional()
+    .describe(
+      "Set to true if this key needs plural forms (e.g., '1 item' vs '5 items'). Follows CLDR Plural Rules with forms: zero, one, two, few, many, and other (the content field). Defaults to false",
+    ),
+  translations: z
+    .array(translationEntrySchema)
+    .min(1)
+    .describe(
+      "Array of translations to set for the new key. Each entry specifies a language_code and the translated content. The tool resolves language codes to IDs internally by fetching the project's configured languages",
+    ),
+})
+
 export const listLanguagesInputSchema = z.object({
   project_id: projectIdField,
   search: z

@@ -4,7 +4,7 @@ import type { Config } from "../config.js"
 import { handleApiResponse, formatSuccessResponse } from "../api/api-utils.js"
 import { TranslationsAPI } from "../api/translations-api.js"
 import { setTranslationInputSchema } from "../types.js"
-import { resolveProjectId, withErrorHandling } from "./tool-utils.js"
+import { resolveProjectId, withErrorHandling, buildTranslationRecord } from "./tool-utils.js"
 
 export function registerSetTranslation(server: McpServer, config: Config): void {
   const operation = "setting translation"
@@ -26,12 +26,7 @@ export function registerSetTranslation(server: McpServer, config: Config): void 
       const result = resolveProjectId(args as { project_id?: string }, config)
       if (typeof result !== "string") return result
 
-      const translation: Record<string, string> = { content: args.content as string }
-      if (args.zero !== undefined) translation.zero = args.zero as string
-      if (args.one !== undefined) translation.one = args.one as string
-      if (args.two !== undefined) translation.two = args.two as string
-      if (args.few !== undefined) translation.few = args.few as string
-      if (args.many !== undefined) translation.many = args.many as string
+      const translation = buildTranslationRecord(args)
 
       const body = {
         key_id: args.key_id as string,

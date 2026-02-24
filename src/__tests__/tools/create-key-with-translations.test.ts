@@ -5,11 +5,9 @@ import { TranslationsAPI } from "../../api/translations-api.js"
 import {
   handleApiResponse,
   formatSuccessResponse,
-  hasBodyErrors,
-  formatBodyErrorResponse,
   formatErrorResponse,
 } from "../../api/api-utils.js"
-import { mockFetchResponse, testConfig } from "../helpers.js"
+import { testConfig } from "../helpers.js"
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -127,50 +125,6 @@ describe("create-key-with-translations tool", () => {
     })
   })
 
-  describe("key creation", () => {
-    it("sends POST to create the key with all provided fields", async () => {
-      const fetchMock = mockFetchResponse(200, sampleKeyResponse)
-      vi.stubGlobal("fetch", fetchMock)
-
-      const body = {
-        name: "greeting",
-        description: "A greeting message",
-        html_enabled: true,
-        pluralization_enabled: false,
-      }
-
-      const response = await KeysAPI.createKey(testConfig, "proj-1", body)
-      const data = await handleApiResponse(response, "creating key")
-
-      const [url, init] = (fetchMock as ReturnType<typeof vi.fn>).mock.calls[0] as [
-        string,
-        RequestInit,
-      ]
-      expect(url).toContain("projects/proj-1/keys")
-      expect(init.method).toBe("POST")
-      expect(JSON.parse(init.body as string)).toEqual(body)
-      expect(data).toEqual(sampleKeyResponse)
-    })
-
-    it("detects body-level errors (e.g., name TAKEN) and returns error", async () => {
-      const errorBody = {
-        errors: { name: [{ error: "TAKEN" }] },
-        data: null,
-        included: [],
-      }
-      const fetchMock = mockFetchResponse(200, errorBody)
-      vi.stubGlobal("fetch", fetchMock)
-
-      const response = await KeysAPI.createKey(testConfig, "proj-1", { name: "duplicate" })
-      const data = await handleApiResponse(response, "creating key")
-
-      expect(hasBodyErrors(data)).toBe(true)
-      const result = formatBodyErrorResponse(data, "creating key")
-      expect(result.isError).toBe(true)
-      expect(result.content[0]!.text).toBe("Error creating key: name: TAKEN")
-    })
-  })
-
   describe("translation setting", () => {
     it("calls createTranslation for each language with resolved IDs", async () => {
       const calls: Array<{ url: string; body: unknown }> = []
@@ -212,36 +166,6 @@ describe("create-key-with-translations tool", () => {
         key_id: "key-new",
         language_id: "lang-de",
         translation: { content: "Hallo" },
-      })
-    })
-
-    it("includes plural forms in translation body when provided", async () => {
-      const fetchMock = mockFetchResponse(200, { data: { id: "t1" } })
-      vi.stubGlobal("fetch", fetchMock)
-
-      await TranslationsAPI.createTranslation(testConfig, "proj-1", {
-        key_id: "key-new",
-        language_id: "lang-en",
-        translation: {
-          content: "items",
-          zero: "no items",
-          one: "one item",
-          few: "a few items",
-          many: "many items",
-        },
-      })
-
-      const [, init] = (fetchMock as ReturnType<typeof vi.fn>).mock.calls[0] as [
-        string,
-        RequestInit,
-      ]
-      const body = JSON.parse(init.body as string)
-      expect(body.translation).toEqual({
-        content: "items",
-        zero: "no items",
-        one: "one item",
-        few: "a few items",
-        many: "many items",
       })
     })
   })

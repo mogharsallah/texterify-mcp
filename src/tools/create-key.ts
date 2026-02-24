@@ -7,10 +7,10 @@ import {
   hasBodyErrors,
   formatBodyErrorResponse,
 } from "../api/api-utils.js"
-import { KeysAPI, type CreateKeyBody } from "../api/keys-api.js"
+import { KeysAPI } from "../api/keys-api.js"
 import { createKeyInputSchema } from "../types.js"
 import type { ICreateKeyResponse } from "../types.js"
-import { resolveProjectId, withErrorHandling } from "./tool-utils.js"
+import { resolveProjectId, withErrorHandling, buildCreateKeyBody } from "./tool-utils.js"
 
 export function registerCreateKey(server: McpServer, config: Config): void {
   const operation = "creating key"
@@ -32,11 +32,7 @@ export function registerCreateKey(server: McpServer, config: Config): void {
       const result = resolveProjectId(args as { project_id?: string }, config)
       if (typeof result !== "string") return result
 
-      const body: CreateKeyBody = { name: args.name as string }
-      if (args.description !== undefined) body.description = args.description as string
-      if (args.html_enabled !== undefined) body.html_enabled = args.html_enabled as boolean
-      if (args.pluralization_enabled !== undefined)
-        body.pluralization_enabled = args.pluralization_enabled as boolean
+      const body = buildCreateKeyBody(args)
 
       const response = await KeysAPI.createKey(config, result, body)
       const data = await handleApiResponse<ICreateKeyResponse>(response, operation)

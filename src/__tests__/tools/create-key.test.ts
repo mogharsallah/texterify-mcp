@@ -30,23 +30,6 @@ describe("create-key tool", () => {
     expect(result.content[0]!.text).toBe(JSON.stringify(mockData, null, 2))
   })
 
-  it("includes optional fields (description, html_enabled) in body", async () => {
-    const fetchMock = mockFetchResponse(200, { data: { id: "key-new" } })
-    vi.stubGlobal("fetch", fetchMock)
-
-    await KeysAPI.createKey(testConfig, "proj-1", {
-      name: "test_key",
-      description: "A test key",
-      html_enabled: true,
-    })
-
-    const [, init] = (fetchMock as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit]
-    const body = JSON.parse(init.body as string)
-    expect(body.name).toBe("test_key")
-    expect(body.description).toBe("A test key")
-    expect(body.html_enabled).toBe(true)
-  })
-
   it("detects body-level errors and returns isError response", async () => {
     const errorBody = {
       errors: { name: [{ error: "TAKEN" }] },

@@ -8,12 +8,17 @@ import {
   formatBodyErrorResponse,
   formatErrorResponse,
 } from "../api/api-utils.js"
-import { KeysAPI, type CreateKeyBody } from "../api/keys-api.js"
+import { KeysAPI } from "../api/keys-api.js"
 import { LanguagesAPI } from "../api/languages-api.js"
 import { TranslationsAPI } from "../api/translations-api.js"
 import { createKeyWithTranslationsInputSchema } from "../types.js"
 import type { ICreateKeyResponse, IGetLanguagesResponse } from "../types.js"
-import { resolveProjectId, withErrorHandling } from "./tool-utils.js"
+import {
+  resolveProjectId,
+  withErrorHandling,
+  buildCreateKeyBody,
+  buildTranslationRecord,
+} from "./tool-utils.js"
 
 /**
  * Fetches all project languages and builds a map of language code → language ID.
@@ -116,11 +121,7 @@ export function registerCreateKeyWithTranslations(server: McpServer, config: Con
       }
 
       // 3. Create the key
-      const keyBody: CreateKeyBody = { name: args.name as string }
-      if (args.description !== undefined) keyBody.description = args.description as string
-      if (args.html_enabled !== undefined) keyBody.html_enabled = args.html_enabled as boolean
-      if (args.pluralization_enabled !== undefined)
-        keyBody.pluralization_enabled = args.pluralization_enabled as boolean
+      const keyBody = buildCreateKeyBody(args)
 
       const keyResponse = await KeysAPI.createKey(config, projectId, keyBody)
       const keyData = await handleApiResponse<ICreateKeyResponse>(keyResponse, "creating key")
@@ -138,12 +139,7 @@ export function registerCreateKeyWithTranslations(server: McpServer, config: Con
         for (const entry of translations) {
           const languageId = codeToId.get(entry.language_code)!
 
-          const translation: Record<string, string> = { content: entry.content }
-          if (entry.zero !== undefined) translation.zero = entry.zero
-          if (entry.one !== undefined) translation.one = entry.one
-          if (entry.two !== undefined) translation.two = entry.two
-          if (entry.few !== undefined) translation.few = entry.few
-          if (entry.many !== undefined) translation.many = entry.many
+          const translation = buildTranslationRecord(entry as unknown as Record<string, unknown>)
 
           const response = await TranslationsAPI.createTranslation(config, projectId, {
             key_id: keyId,

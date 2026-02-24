@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
@@ -40,9 +40,12 @@ jobs:
 
       # Step 2: Publish to npm using native OIDC trusted publishing
       # Runs only when no changesets remain (i.e. version was already bumped)
+      # Unset NODE_AUTH_TOKEN so npm uses native OIDC instead of the stale
+      # token the changesets action obtained via its own OIDC exchange.
       - name: Publish to npm
         if: steps.changesets.outputs.hasChangesets == 'false'
         run: |
+          unset NODE_AUTH_TOKEN
           VERSION=$(node -p "require('./package.json').version")
           if npm view texterify-mcp@$VERSION version 2>/dev/null; then
             echo "v$VERSION already published, skipping"

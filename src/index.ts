@@ -10,6 +10,7 @@ import { registerCreateKey } from "./tools/create-key.js"
 import { registerUpdateKey } from "./tools/update-key.js"
 import { registerDeleteKeys } from "./tools/delete-keys.js"
 import { registerSetTranslation } from "./tools/set-translation.js"
+import { registerCreateKeyWithTranslations } from "./tools/create-key-with-translations.js"
 import { registerListLanguages } from "./tools/list-languages.js"
 import { registerListProjects } from "./tools/list-projects.js"
 
@@ -20,6 +21,10 @@ async function main(): Promise<void> {
 
   const server = new McpServer({
     name: "texterify-mcp",
+    websiteUrl: "https://texterify.com",
+    title: "Texterify MCP",
+    description:
+      "Manage Texterify translation projects — list, create, update, and delete translation keys and their translations across languages.",
     version,
   })
 
@@ -29,6 +34,7 @@ async function main(): Promise<void> {
   registerUpdateKey(server, config)
   registerDeleteKeys(server, config)
   registerSetTranslation(server, config)
+  registerCreateKeyWithTranslations(server, config)
   registerListLanguages(server, config)
   registerListProjects(server, config)
 

@@ -68,36 +68,40 @@ Config file locations:
 ### Claude Code
 
 ```sh
-claude mcp add texterify -- npx -y texterify-mcp \
+claude mcp add --transport stdio \
   --env TEXTERIFY_AUTH_EMAIL=you@example.com \
   --env TEXTERIFY_AUTH_SECRET=your-api-secret \
-  --env TEXTERIFY_PROJECT_ID=your-project-uuid  # Optional - can be provided per-tool
+  --env TEXTERIFY_PROJECT_ID=your-project-uuid \
+  texterify -- npx -y texterify-mcp
 ```
+
+> **Note:** All flags (`--transport`, `--env`) must come **before** the server name. The `--` separates the server name from the command. `TEXTERIFY_PROJECT_ID` is optional and can be provided per-tool.
 
 ### OpenCode
 
-Add to your `opencode.json`:
+Add to your `opencode.json` (or `opencode.jsonc`):
 
 ```json
 {
   "mcp": {
     "texterify": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "texterify-mcp"],
-      "env": {
+      "type": "local",
+      "command": ["npx", "-y", "texterify-mcp"],
+      "environment": {
         "TEXTERIFY_AUTH_EMAIL": "you@example.com",
         "TEXTERIFY_AUTH_SECRET": "your-api-secret",
-        "TEXTERIFY_PROJECT_ID": "your-project-uuid" // Optional - can be provided per-tool
+        "TEXTERIFY_PROJECT_ID": "your-project-uuid"
       }
     }
   }
 }
 ```
 
+> `TEXTERIFY_PROJECT_ID` is optional and can be provided per-tool.
+
 ### VS Code / Copilot
 
-Add to `.vscode/mcp.json` in your workspace (or your user-level MCP config):
+Add to `.vscode/mcp.json` in your workspace (or add to your user profile via **MCP: Add Server** in the Command Palette):
 
 ```json
 {
@@ -108,16 +112,18 @@ Add to `.vscode/mcp.json` in your workspace (or your user-level MCP config):
       "env": {
         "TEXTERIFY_AUTH_EMAIL": "you@example.com",
         "TEXTERIFY_AUTH_SECRET": "your-api-secret",
-        "TEXTERIFY_PROJECT_ID": "your-project-uuid" // Optional - can be provided per-tool
+        "TEXTERIFY_PROJECT_ID": "your-project-uuid"
       }
     }
   }
 }
 ```
 
+> `TEXTERIFY_PROJECT_ID` is optional and can be provided per-tool.
+
 ### Cursor
 
-Add to your Cursor MCP settings (Settings > MCP Servers):
+Add to `.cursor/mcp.json` in your project root (project-specific) or `~/.cursor/mcp.json` (global):
 
 ```json
 {
@@ -128,12 +134,14 @@ Add to your Cursor MCP settings (Settings > MCP Servers):
       "env": {
         "TEXTERIFY_AUTH_EMAIL": "you@example.com",
         "TEXTERIFY_AUTH_SECRET": "your-api-secret",
-        "TEXTERIFY_PROJECT_ID": "your-project-uuid" // Optional - can be provided per-tool
+        "TEXTERIFY_PROJECT_ID": "your-project-uuid"
       }
     }
   }
 }
 ```
+
+> `TEXTERIFY_PROJECT_ID` is optional and can be provided per-tool.
 
 ## Available Tools
 

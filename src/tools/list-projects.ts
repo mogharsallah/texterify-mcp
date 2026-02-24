@@ -15,6 +15,12 @@ export function registerListProjects(server: McpServer, config: Config): void {
     {
       description:
         "List all Texterify projects accessible to the authenticated user. Use this to discover project IDs and names, or to verify the currently configured project. Note: all other tools already operate on the pre-configured project (set via TEXTERIFY_PROJECT_ID environment variable), so this tool is mainly useful for discovery and verification. The response includes: `data` (projects with name, description, word_count, character_count, organization_id) and `meta.total`.",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: listProjectsInputSchema,
     },
     withErrorHandling(operation, async (args) => {

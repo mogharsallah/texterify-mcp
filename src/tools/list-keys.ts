@@ -15,6 +15,12 @@ export function registerListKeys(server: McpServer, config: Config): void {
     {
       description:
         "Search and list translation keys (i18n string identifiers) in the configured Texterify project. Returns keys with their current translations, tags, and pagination metadata. Use this to find key IDs needed by get_key, update_key, delete_keys, and set_translation. The response includes: `data` (array of keys with name, description, html_enabled, pluralization_enabled), `included` (translations with content per language, tags), and `meta.total` (total count for pagination). Search matches against key name, description, and translation content (case-insensitive).",
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true,
+      },
       inputSchema: listKeysInputSchema,
     },
     withErrorHandling(operation, async (args) => {

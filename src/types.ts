@@ -210,14 +210,6 @@ export interface ITag {
 
 // ── Zod Input Schemas ───────────────────────────────────────────
 
-const projectIdField = z
-  .string()
-  .min(1)
-  .optional()
-  .describe(
-    "The Texterify project UUID. If omitted, uses the TEXTERIFY_PROJECT_ID environment variable. You can find this value in the project's texterify.json file under the 'project_id' field",
-  )
-
 const paginationSchema = {
   page: z
     .number()
@@ -235,152 +227,6 @@ const paginationSchema = {
     .optional()
     .describe("Number of results per page (default: 10, max: 50)"),
 }
-
-export const listKeysInputSchema = z.object({
-  project_id: projectIdField,
-  search: z
-    .string()
-    .optional()
-    .describe(
-      "Filter keys by name, description, or translation content (case-insensitive substring match)",
-    ),
-  only_untranslated: z
-    .boolean()
-    .optional()
-    .describe(
-      "If true, return only keys that have missing translations for one or more project languages. Useful for finding gaps in localization coverage",
-    ),
-  ...paginationSchema,
-})
-
-export const getKeyInputSchema = z.object({
-  project_id: projectIdField,
-  key_id: z
-    .string()
-    .min(1)
-    .describe(
-      "The UUID of the key to retrieve. Get this from the `data[].id` field in list_keys responses",
-    ),
-})
-
-export const createKeyInputSchema = z.object({
-  project_id: projectIdField,
-  name: z
-    .string()
-    .min(1)
-    .describe(
-      "The key name used as the i18n identifier in source code, typically in snake_case or dot.notation (e.g., 'welcome_message', 'auth.login.title'). Must be unique within the project",
-    ),
-  description: z
-    .string()
-    .optional()
-    .describe(
-      "Optional human-readable description to help translators understand the context (e.g., 'Greeting shown on the homepage header'). This is not the translation — it's metadata about where/how the key is used",
-    ),
-  html_enabled: z
-    .boolean()
-    .optional()
-    .describe(
-      "Set to true if translation values for this key contain HTML markup. When enabled, the Texterify UI shows a rich text editor for translators. Defaults to false",
-    ),
-  pluralization_enabled: z
-    .boolean()
-    .optional()
-    .describe(
-      "Set to true if this key needs plural forms (e.g., '1 item' vs '5 items'). Follows CLDR Plural Rules with forms: zero, one, two, few, many, and other (the content field). When enabled, use the plural parameters in set_translation. Defaults to false",
-    ),
-})
-
-export const updateKeyInputSchema = z.object({
-  project_id: projectIdField,
-  key_id: z
-    .string()
-    .min(1)
-    .describe("The UUID of the key to update. Get this from list_keys or get_key responses"),
-  name: z
-    .string()
-    .min(1)
-    .optional()
-    .describe("New key name. Must be unique within the project. Omit to leave unchanged"),
-  description: z
-    .string()
-    .optional()
-    .describe("New description to help translators understand context. Omit to leave unchanged"),
-  html_enabled: z
-    .boolean()
-    .optional()
-    .describe(
-      "Whether translation values for this key can contain HTML markup. Omit to leave unchanged",
-    ),
-  pluralization_enabled: z
-    .boolean()
-    .optional()
-    .describe(
-      "Whether this key supports CLDR plural forms (zero, one, two, few, many). Omit to leave unchanged",
-    ),
-})
-
-export const deleteKeysInputSchema = z.object({
-  project_id: projectIdField,
-  key_ids: z
-    .array(z.string().min(1))
-    .min(1)
-    .describe(
-      "Array of one or more key UUIDs to delete. Get these from the `data[].id` field in list_keys responses. All keys and their translations across every language are permanently removed",
-    ),
-})
-
-export const setTranslationInputSchema = z.object({
-  project_id: projectIdField,
-  key_id: z
-    .string()
-    .min(1)
-    .describe(
-      "The UUID of the translation key. Get this from list_keys, get_key, or create_key response `data.id`",
-    ),
-  language_id: z
-    .string()
-    .min(1)
-    .describe(
-      "The UUID of the target language. Get this from the `data[].id` field in list_languages responses",
-    ),
-  content: z
-    .string()
-    .min(1)
-    .describe(
-      "The translated text. This is the main translation value and also serves as the 'other' plural form when pluralization is enabled on the key",
-    ),
-  zero: z
-    .string()
-    .optional()
-    .describe(
-      "CLDR plural form for zero quantity (e.g., 'No items'). Only relevant when the key has pluralization_enabled and the language supports this form (check supports_plural_zero from list_languages)",
-    ),
-  one: z
-    .string()
-    .optional()
-    .describe(
-      "CLDR plural form for singular quantity (e.g., '1 item'). Only relevant when the key has pluralization_enabled and the language supports this form",
-    ),
-  two: z
-    .string()
-    .optional()
-    .describe(
-      "CLDR plural form for dual quantity (e.g., '2 items'). Only relevant for languages with a dual form (e.g., Arabic, Slovenian)",
-    ),
-  few: z
-    .string()
-    .optional()
-    .describe(
-      "CLDR plural form for few quantity (e.g., '3 items'). Only relevant for languages with a paucal form (e.g., Polish, Czech, Arabic)",
-    ),
-  many: z
-    .string()
-    .optional()
-    .describe(
-      "CLDR plural form for many quantity (e.g., '5 items'). Only relevant for languages with this form (e.g., Polish, Arabic, Welsh)",
-    ),
-})
 
 const translationEntrySchema = z.object({
   language_code: z
@@ -427,48 +273,217 @@ const translationEntrySchema = z.object({
     ),
 })
 
-export const createKeyWithTranslationsInputSchema = z.object({
-  project_id: projectIdField,
-  name: z
-    .string()
-    .min(1)
-    .describe(
-      "The key name used as the i18n identifier in source code, typically in snake_case or dot.notation (e.g., 'welcome_message', 'auth.login.title'). Must be unique within the project",
-    ),
-  description: z
-    .string()
-    .optional()
-    .describe(
-      "Optional human-readable description to help translators understand the context (e.g., 'Greeting shown on the homepage header'). This is not the translation — it's metadata about where/how the key is used",
-    ),
-  html_enabled: z
-    .boolean()
-    .optional()
-    .describe(
-      "Set to true if translation values for this key contain HTML markup. When enabled, the Texterify UI shows a rich text editor for translators. Defaults to false",
-    ),
-  pluralization_enabled: z
-    .boolean()
-    .optional()
-    .describe(
-      "Set to true if this key needs plural forms (e.g., '1 item' vs '5 items'). Follows CLDR Plural Rules with forms: zero, one, two, few, many, and other (the content field). Defaults to false",
-    ),
-  translations: z
-    .array(translationEntrySchema)
-    .min(1)
-    .describe(
-      "Array of translations to set for the new key. Each entry specifies a language_code and the translated content. The tool resolves language codes to IDs internally by fetching the project's configured languages",
-    ),
-})
+export function buildInputSchemas(projectIdRequired: boolean) {
+  const projectIdField = projectIdRequired
+    ? z
+        .string()
+        .min(1)
+        .describe(
+          "The Texterify project UUID. You can find this value in the project's texterify.json file under the 'project_id' field",
+        )
+    : z
+        .string()
+        .min(1)
+        .optional()
+        .describe(
+          "The Texterify project UUID. If omitted, uses the TEXTERIFY_PROJECT_ID environment variable. You can find this value in the project's texterify.json file under the 'project_id' field",
+        )
 
-export const listLanguagesInputSchema = z.object({
-  project_id: projectIdField,
-  search: z
-    .string()
-    .optional()
-    .describe("Filter languages by name (case-insensitive substring match)"),
-  ...paginationSchema,
-})
+  return {
+    listKeys: z.object({
+      project_id: projectIdField,
+      search: z
+        .string()
+        .optional()
+        .describe(
+          "Filter keys by name, description, or translation content (case-insensitive substring match)",
+        ),
+      only_untranslated: z
+        .boolean()
+        .optional()
+        .describe(
+          "If true, return only keys that have missing translations for one or more project languages. Useful for finding gaps in localization coverage",
+        ),
+      ...paginationSchema,
+    }),
+
+    getKey: z.object({
+      project_id: projectIdField,
+      key_id: z
+        .string()
+        .min(1)
+        .describe(
+          "The UUID of the key to retrieve. Get this from the `data[].id` field in list_keys responses",
+        ),
+    }),
+
+    createKey: z.object({
+      project_id: projectIdField,
+      name: z
+        .string()
+        .min(1)
+        .describe(
+          "The key name used as the i18n identifier in source code, typically in snake_case or dot.notation (e.g., 'welcome_message', 'auth.login.title'). Must be unique within the project",
+        ),
+      description: z
+        .string()
+        .optional()
+        .describe(
+          "Optional human-readable description to help translators understand the context (e.g., 'Greeting shown on the homepage header'). This is not the translation — it's metadata about where/how the key is used",
+        ),
+      html_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set to true if translation values for this key contain HTML markup. When enabled, the Texterify UI shows a rich text editor for translators. Defaults to false",
+        ),
+      pluralization_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set to true if this key needs plural forms (e.g., '1 item' vs '5 items'). Follows CLDR Plural Rules with forms: zero, one, two, few, many, and other (the content field). When enabled, use the plural parameters in set_translation. Defaults to false",
+        ),
+    }),
+
+    updateKey: z.object({
+      project_id: projectIdField,
+      key_id: z
+        .string()
+        .min(1)
+        .describe("The UUID of the key to update. Get this from list_keys or get_key responses"),
+      name: z
+        .string()
+        .min(1)
+        .optional()
+        .describe("New key name. Must be unique within the project. Omit to leave unchanged"),
+      description: z
+        .string()
+        .optional()
+        .describe(
+          "New description to help translators understand context. Omit to leave unchanged",
+        ),
+      html_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Whether translation values for this key can contain HTML markup. Omit to leave unchanged",
+        ),
+      pluralization_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Whether this key supports CLDR plural forms (zero, one, two, few, many). Omit to leave unchanged",
+        ),
+    }),
+
+    deleteKeys: z.object({
+      project_id: projectIdField,
+      key_ids: z
+        .array(z.string().min(1))
+        .min(1)
+        .describe(
+          "Array of one or more key UUIDs to delete. Get these from the `data[].id` field in list_keys responses. All keys and their translations across every language are permanently removed",
+        ),
+    }),
+
+    setTranslation: z.object({
+      project_id: projectIdField,
+      key_id: z
+        .string()
+        .min(1)
+        .describe(
+          "The UUID of the translation key. Get this from list_keys, get_key, or create_key response `data.id`",
+        ),
+      language_id: z
+        .string()
+        .min(1)
+        .describe(
+          "The UUID of the target language. Get this from the `data[].id` field in list_languages responses",
+        ),
+      content: z
+        .string()
+        .min(1)
+        .describe(
+          "The translated text. This is the main translation value and also serves as the 'other' plural form when pluralization is enabled on the key",
+        ),
+      zero: z
+        .string()
+        .optional()
+        .describe(
+          "CLDR plural form for zero quantity (e.g., 'No items'). Only relevant when the key has pluralization_enabled and the language supports this form (check supports_plural_zero from list_languages)",
+        ),
+      one: z
+        .string()
+        .optional()
+        .describe(
+          "CLDR plural form for singular quantity (e.g., '1 item'). Only relevant when the key has pluralization_enabled and the language supports this form",
+        ),
+      two: z
+        .string()
+        .optional()
+        .describe(
+          "CLDR plural form for dual quantity (e.g., '2 items'). Only relevant for languages with a dual form (e.g., Arabic, Slovenian)",
+        ),
+      few: z
+        .string()
+        .optional()
+        .describe(
+          "CLDR plural form for few quantity (e.g., '3 items'). Only relevant for languages with a paucal form (e.g., Polish, Czech, Arabic)",
+        ),
+      many: z
+        .string()
+        .optional()
+        .describe(
+          "CLDR plural form for many quantity (e.g., '5 items'). Only relevant for languages with this form (e.g., Polish, Arabic, Welsh)",
+        ),
+    }),
+
+    createKeyWithTranslations: z.object({
+      project_id: projectIdField,
+      name: z
+        .string()
+        .min(1)
+        .describe(
+          "The key name used as the i18n identifier in source code, typically in snake_case or dot.notation (e.g., 'welcome_message', 'auth.login.title'). Must be unique within the project",
+        ),
+      description: z
+        .string()
+        .optional()
+        .describe(
+          "Optional human-readable description to help translators understand the context (e.g., 'Greeting shown on the homepage header'). This is not the translation — it's metadata about where/how the key is used",
+        ),
+      html_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set to true if translation values for this key contain HTML markup. When enabled, the Texterify UI shows a rich text editor for translators. Defaults to false",
+        ),
+      pluralization_enabled: z
+        .boolean()
+        .optional()
+        .describe(
+          "Set to true if this key needs plural forms (e.g., '1 item' vs '5 items'). Follows CLDR Plural Rules with forms: zero, one, two, few, many, and other (the content field). Defaults to false",
+        ),
+      translations: z
+        .array(translationEntrySchema)
+        .min(1)
+        .describe(
+          "Array of translations to set for the new key. Each entry specifies a language_code and the translated content. The tool resolves language codes to IDs internally by fetching the project's configured languages",
+        ),
+    }),
+
+    listLanguages: z.object({
+      project_id: projectIdField,
+      search: z
+        .string()
+        .optional()
+        .describe("Filter languages by name (case-insensitive substring match)"),
+      ...paginationSchema,
+    }),
+  }
+}
+
+export type InputSchemas = ReturnType<typeof buildInputSchemas>
 
 export const listProjectsInputSchema = z.object({
   search: z

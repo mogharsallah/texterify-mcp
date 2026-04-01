@@ -3,10 +3,14 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import type { Config } from "../config.js"
 import { handleApiResponse, formatSuccessResponse } from "../api/api-utils.js"
 import { TranslationsAPI } from "../api/translations-api.js"
-import { setTranslationInputSchema } from "../types.js"
+import type { InputSchemas } from "../types.js"
 import { resolveProjectId, withErrorHandling, buildTranslationRecord } from "./tool-utils.js"
 
-export function registerSetTranslation(server: McpServer, config: Config): void {
+export function registerSetTranslation(
+  server: McpServer,
+  config: Config,
+  inputSchema: InputSchemas["setTranslation"],
+): void {
   const operation = "setting translation"
 
   server.registerTool(
@@ -20,7 +24,7 @@ export function registerSetTranslation(server: McpServer, config: Config): void 
         idempotentHint: true,
         openWorldHint: true,
       },
-      inputSchema: setTranslationInputSchema,
+      inputSchema,
     },
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)

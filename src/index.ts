@@ -4,6 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 import { loadConfig } from "./config.js"
+import { buildInputSchemas } from "./types.js"
 import { registerListKeys } from "./tools/list-keys.js"
 import { registerGetKey } from "./tools/get-key.js"
 import { registerCreateKey } from "./tools/create-key.js"
@@ -16,6 +17,7 @@ import { registerListProjects } from "./tools/list-projects.js"
 
 async function main(): Promise<void> {
   const config = loadConfig()
+  const schemas = buildInputSchemas(!config.projectId)
   const require = createRequire(import.meta.url)
   const { version } = require("../package.json") as { version: string }
 
@@ -28,14 +30,14 @@ async function main(): Promise<void> {
     version,
   })
 
-  registerListKeys(server, config)
-  registerGetKey(server, config)
-  registerCreateKey(server, config)
-  registerUpdateKey(server, config)
-  registerDeleteKeys(server, config)
-  registerSetTranslation(server, config)
-  registerCreateKeyWithTranslations(server, config)
-  registerListLanguages(server, config)
+  registerListKeys(server, config, schemas.listKeys)
+  registerGetKey(server, config, schemas.getKey)
+  registerCreateKey(server, config, schemas.createKey)
+  registerUpdateKey(server, config, schemas.updateKey)
+  registerDeleteKeys(server, config, schemas.deleteKeys)
+  registerSetTranslation(server, config, schemas.setTranslation)
+  registerCreateKeyWithTranslations(server, config, schemas.createKeyWithTranslations)
+  registerListLanguages(server, config, schemas.listLanguages)
   registerListProjects(server, config)
 
   const transport = new StdioServerTransport()

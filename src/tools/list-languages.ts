@@ -3,11 +3,14 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import type { Config } from "../config.js"
 import { handleApiResponse, formatSuccessResponse } from "../api/api-utils.js"
 import { LanguagesAPI } from "../api/languages-api.js"
-import { listLanguagesInputSchema } from "../types.js"
-import type { IGetLanguagesResponse } from "../types.js"
+import type { InputSchemas, IGetLanguagesResponse } from "../types.js"
 import { resolveProjectId, withErrorHandling } from "./tool-utils.js"
 
-export function registerListLanguages(server: McpServer, config: Config): void {
+export function registerListLanguages(
+  server: McpServer,
+  config: Config,
+  inputSchema: InputSchemas["listLanguages"],
+): void {
   const operation = "listing languages"
 
   server.registerTool(
@@ -21,7 +24,7 @@ export function registerListLanguages(server: McpServer, config: Config): void {
         idempotentHint: true,
         openWorldHint: true,
       },
-      inputSchema: listLanguagesInputSchema,
+      inputSchema,
     },
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)

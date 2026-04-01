@@ -8,10 +8,14 @@ import {
   formatBodyErrorResponse,
 } from "../api/api-utils.js"
 import { KeysAPI, type UpdateKeyBody } from "../api/keys-api.js"
-import { updateKeyInputSchema } from "../types.js"
+import type { InputSchemas } from "../types.js"
 import { resolveProjectId, withErrorHandling } from "./tool-utils.js"
 
-export function registerUpdateKey(server: McpServer, config: Config): void {
+export function registerUpdateKey(
+  server: McpServer,
+  config: Config,
+  inputSchema: InputSchemas["updateKey"],
+): void {
   const operation = "updating key"
 
   server.registerTool(
@@ -25,7 +29,7 @@ export function registerUpdateKey(server: McpServer, config: Config): void {
         idempotentHint: true,
         openWorldHint: true,
       },
-      inputSchema: updateKeyInputSchema,
+      inputSchema,
     },
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)

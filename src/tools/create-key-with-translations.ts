@@ -11,8 +11,7 @@ import {
 import { KeysAPI } from "../api/keys-api.js"
 import { LanguagesAPI } from "../api/languages-api.js"
 import { TranslationsAPI } from "../api/translations-api.js"
-import { createKeyWithTranslationsInputSchema } from "../types.js"
-import type { ICreateKeyResponse, IGetLanguagesResponse } from "../types.js"
+import type { InputSchemas, ICreateKeyResponse, IGetLanguagesResponse } from "../types.js"
 import {
   resolveProjectId,
   withErrorHandling,
@@ -74,7 +73,11 @@ interface TranslationEntry {
   many?: string
 }
 
-export function registerCreateKeyWithTranslations(server: McpServer, config: Config): void {
+export function registerCreateKeyWithTranslations(
+  server: McpServer,
+  config: Config,
+  inputSchema: InputSchemas["createKeyWithTranslations"],
+): void {
   const operation = "creating key with translations"
 
   server.registerTool(
@@ -92,7 +95,7 @@ export function registerCreateKeyWithTranslations(server: McpServer, config: Con
         idempotentHint: false,
         openWorldHint: true,
       },
-      inputSchema: createKeyWithTranslationsInputSchema,
+      inputSchema,
     },
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)

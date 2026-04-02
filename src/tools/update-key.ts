@@ -9,7 +9,7 @@ import {
 } from "../api/api-utils.js"
 import { KeysAPI, type UpdateKeyBody } from "../api/keys-api.js"
 import type { InputSchemas } from "../types.js"
-import { resolveProjectId, withErrorHandling } from "./tool-utils.js"
+import { resolveProjectId, withErrorHandling, elicitConfirmation } from "./tool-utils.js"
 
 export function registerUpdateKey(
   server: McpServer,
@@ -34,6 +34,12 @@ export function registerUpdateKey(
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)
       if (typeof result !== "string") return result
+
+      const confirmation = await elicitConfirmation(
+        server,
+        `Update metadata for key '${args.key_id}'?`,
+      )
+      if (confirmation !== "proceed") return confirmation
 
       const body: UpdateKeyBody = {}
       if (args.name !== undefined) body.name = args.name as string

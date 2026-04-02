@@ -9,7 +9,12 @@ import {
 } from "../api/api-utils.js"
 import { KeysAPI } from "../api/keys-api.js"
 import type { InputSchemas, ICreateKeyResponse } from "../types.js"
-import { resolveProjectId, withErrorHandling, buildCreateKeyBody } from "./tool-utils.js"
+import {
+  resolveProjectId,
+  withErrorHandling,
+  buildCreateKeyBody,
+  elicitConfirmation,
+} from "./tool-utils.js"
 
 export function registerCreateKey(
   server: McpServer,
@@ -34,6 +39,12 @@ export function registerCreateKey(
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)
       if (typeof result !== "string") return result
+
+      const confirmation = await elicitConfirmation(
+        server,
+        `Create a new translation key '${args.name}'?`,
+      )
+      if (confirmation !== "proceed") return confirmation
 
       const body = buildCreateKeyBody(args)
 

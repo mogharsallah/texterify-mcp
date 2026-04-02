@@ -4,7 +4,12 @@ import type { Config } from "../config.js"
 import { handleApiResponse, formatSuccessResponse } from "../api/api-utils.js"
 import { TranslationsAPI } from "../api/translations-api.js"
 import type { InputSchemas } from "../types.js"
-import { resolveProjectId, withErrorHandling, buildTranslationRecord } from "./tool-utils.js"
+import {
+  resolveProjectId,
+  withErrorHandling,
+  buildTranslationRecord,
+  elicitConfirmation,
+} from "./tool-utils.js"
 
 export function registerSetTranslation(
   server: McpServer,
@@ -29,6 +34,12 @@ export function registerSetTranslation(
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)
       if (typeof result !== "string") return result
+
+      const confirmation = await elicitConfirmation(
+        server,
+        `Set translation for key '${args.key_id}' in language '${args.language_id}'?`,
+      )
+      if (confirmation !== "proceed") return confirmation
 
       const translation = buildTranslationRecord(args)
 

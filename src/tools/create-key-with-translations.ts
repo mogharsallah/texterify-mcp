@@ -17,6 +17,7 @@ import {
   withErrorHandling,
   buildCreateKeyBody,
   buildTranslationRecord,
+  elicitConfirmation,
 } from "./tool-utils.js"
 
 /**
@@ -103,6 +104,12 @@ export function registerCreateKeyWithTranslations(
       const projectId = result
 
       const translations = args.translations as TranslationEntry[]
+
+      const confirmation = await elicitConfirmation(
+        server,
+        `Create key '${args.name}' with ${translations.length} translation(s)?`,
+      )
+      if (confirmation !== "proceed") return confirmation
 
       // 1. Fetch all project languages and build code → ID map
       const codeToId = await fetchLanguageCodeMap(config, projectId)

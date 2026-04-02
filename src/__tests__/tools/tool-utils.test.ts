@@ -1,5 +1,22 @@
-import { describe, it, expect } from "vitest"
-import { buildCreateKeyBody, buildTranslationRecord } from "../../tools/tool-utils.js"
+import { describe, it, expect, vi } from "vitest"
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import {
+  buildCreateKeyBody,
+  buildTranslationRecord,
+  elicitConfirmation,
+} from "../../tools/tool-utils.js"
+
+function mockServer(options: {
+  supportsElicitation: boolean
+  elicitResult?: { action: string; content?: Record<string, unknown> }
+}): McpServer {
+  return {
+    server: {
+      getClientCapabilities: () => (options.supportsElicitation ? { elicitation: {} } : {}),
+      elicitInput: vi.fn().mockResolvedValue(options.elicitResult),
+    },
+  } as unknown as McpServer
+}
 
 describe("buildCreateKeyBody", () => {
   it("returns only name when no optional fields are provided", () => {
@@ -104,5 +121,83 @@ describe("buildTranslationRecord", () => {
     })
 
     expect(record).toEqual({ content: "Hello" })
+  })
+})
+
+describe("elicitConfirmation", () => {
+  it('returns "proceed" when client does not support elicitation', async () => {
+    const server = mockServer({ supportsElicitation: false })
+
+    const result = await elicitConfirmation(server, "Delete all keys?")
+
+    expect(result).toBe("proceed")
+    expect(server.server.elicitInput).not.toHaveBeenCalled()
+  })
+
+  it('returns "proceed" when user accepts and confirms', async () => {
+    const server = mockServer({
+      supportsElicitation: true,
+      elicitResult: { action: "accept", content: { confirm: true } },
+    })
+
+    const result = await elicitConfirmation(server, "Delete all keys?")
+
+    expect(result).toBe("proceed")
+    expect(server.server.elicitInput).toHaveBeenCalledWith({
+      message: "Delete all keys?",
+      requestedSchema: {
+        type: "object",
+        properties: {
+          confirm: {
+            type: "boolean",
+            title: "Confirm",
+            description: "Set to true to proceed with this operation",
+          },
+        },
+        required: ["confirm"],
+      },
+    })
+  })
+
+  it("returns cancellation response when user declines", async () => {
+    const server = mockServer({
+      supportsElicitation: true,
+      elicitResult: { action: "decline" },
+    })
+
+    const result = await elicitConfirmation(server, "Delete all keys?")
+
+    expect(result).not.toBe("proceed")
+    expect(result).toEqual({
+      content: [{ type: "text", text: "Operation cancelled by user." }],
+    })
+  })
+
+  it("returns cancellation response when user cancels", async () => {
+    const server = mockServer({
+      supportsElicitation: true,
+      elicitResult: { action: "cancel" },
+    })
+
+    const result = await elicitConfirmation(server, "Delete all keys?")
+
+    expect(result).not.toBe("proceed")
+    expect(result).toEqual({
+      content: [{ type: "text", text: "Operation cancelled by user." }],
+    })
+  })
+
+  it("returns cancellation response when user accepts but does not confirm", async () => {
+    const server = mockServer({
+      supportsElicitation: true,
+      elicitResult: { action: "accept", content: { confirm: false } },
+    })
+
+    const result = await elicitConfirmation(server, "Delete all keys?")
+
+    expect(result).not.toBe("proceed")
+    expect(result).toEqual({
+      content: [{ type: "text", text: "Operation cancelled by user." }],
+    })
   })
 })

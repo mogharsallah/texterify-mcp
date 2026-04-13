@@ -11,13 +11,13 @@ import {
 import { KeysAPI } from "../api/keys-api.js"
 import { LanguagesAPI } from "../api/languages-api.js"
 import { TranslationsAPI } from "../api/translations-api.js"
-import { createKeyWithTranslationsInputSchema } from "../types.js"
-import type { ICreateKeyResponse, IGetLanguagesResponse } from "../types.js"
+import type { InputSchemas, ICreateKeyResponse, IGetLanguagesResponse } from "../types.js"
 import {
   resolveProjectId,
   withErrorHandling,
   buildCreateKeyBody,
   buildTranslationRecord,
+  elicitConfirmation,
 } from "./tool-utils.js"
 
 /**
@@ -74,7 +74,11 @@ interface TranslationEntry {
   many?: string
 }
 
-export function registerCreateKeyWithTranslations(server: McpServer, config: Config): void {
+export function registerCreateKeyWithTranslations(
+  server: McpServer,
+  config: Config,
+  inputSchema: InputSchemas["createKeyWithTranslations"],
+): void {
   const operation = "creating key with translations"
 
   server.registerTool(
@@ -92,7 +96,7 @@ export function registerCreateKeyWithTranslations(server: McpServer, config: Con
         idempotentHint: false,
         openWorldHint: true,
       },
-      inputSchema: createKeyWithTranslationsInputSchema,
+      inputSchema,
     },
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)
@@ -100,6 +104,12 @@ export function registerCreateKeyWithTranslations(server: McpServer, config: Con
       const projectId = result
 
       const translations = args.translations as TranslationEntry[]
+
+      const confirmation = await elicitConfirmation(
+        server,
+        `Create key '${args.name}' with ${translations.length} translation(s)?`,
+      )
+      if (confirmation !== "proceed") return confirmation
 
       // 1. Fetch all project languages and build code → ID map
       const codeToId = await fetchLanguageCodeMap(config, projectId)

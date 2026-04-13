@@ -1,3 +1,5 @@
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+
 import type { Config } from "../config.js"
 import type { CreateKeyBody } from "../api/keys-api.js"
 import { formatErrorResponse, type ToolResponse } from "../api/api-utils.js"
@@ -62,5 +64,41 @@ export function withErrorHandling(
     } catch (error) {
       return formatErrorResponse(error, operation)
     }
+  }
+}
+
+/**
+ * Asks the user for explicit confirmation via MCP elicitation before proceeding
+ * with a write operation. Returns "proceed" if the user confirms or the client
+ * doesn't support elicitation (backward-compatible fallback).
+ */
+export async function elicitConfirmation(
+  server: McpServer,
+  message: string,
+): Promise<"proceed" | ToolResponse> {
+  const capabilities = server.server.getClientCapabilities()
+  if (!capabilities?.elicitation) return "proceed"
+
+  const result = await server.server.elicitInput({
+    message,
+    requestedSchema: {
+      type: "object",
+      properties: {
+        confirm: {
+          type: "boolean",
+          title: "Confirm",
+          description: "Set to true to proceed with this operation",
+        },
+      },
+      required: ["confirm"],
+    },
+  })
+
+  if (result.action === "accept" && result.content?.confirm === true) {
+    return "proceed"
+  }
+
+  return {
+    content: [{ type: "text", text: "Operation cancelled by user." }],
   }
 }

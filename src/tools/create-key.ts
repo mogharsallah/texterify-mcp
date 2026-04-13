@@ -8,11 +8,19 @@ import {
   formatBodyErrorResponse,
 } from "../api/api-utils.js"
 import { KeysAPI } from "../api/keys-api.js"
-import { createKeyInputSchema } from "../types.js"
-import type { ICreateKeyResponse } from "../types.js"
-import { resolveProjectId, withErrorHandling, buildCreateKeyBody } from "./tool-utils.js"
+import type { InputSchemas, ICreateKeyResponse } from "../types.js"
+import {
+  resolveProjectId,
+  withErrorHandling,
+  buildCreateKeyBody,
+  elicitConfirmation,
+} from "./tool-utils.js"
 
-export function registerCreateKey(server: McpServer, config: Config): void {
+export function registerCreateKey(
+  server: McpServer,
+  config: Config,
+  inputSchema: InputSchemas["createKey"],
+): void {
   const operation = "creating key"
 
   server.registerTool(
@@ -26,11 +34,17 @@ export function registerCreateKey(server: McpServer, config: Config): void {
         idempotentHint: false,
         openWorldHint: true,
       },
-      inputSchema: createKeyInputSchema,
+      inputSchema,
     },
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)
       if (typeof result !== "string") return result
+
+      const confirmation = await elicitConfirmation(
+        server,
+        `Create a new translation key '${args.name}'?`,
+      )
+      if (confirmation !== "proceed") return confirmation
 
       const body = buildCreateKeyBody(args)
 

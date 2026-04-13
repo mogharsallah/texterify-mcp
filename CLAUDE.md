@@ -4,7 +4,7 @@ TypeScript MCP server exposing Texterify translation management as tools for LLM
 
 ## Quick Reference
 
-- **Package Manager:** pnpm (do NOT use npm or yarn)
+- **Package Manager:** pnpm
 - **Install:** `pnpm install`
 - **Start:** `pnpm start`
 - **Dev:** `pnpm dev`
@@ -17,7 +17,7 @@ No build step -- `tsx` runs TypeScript directly.
 
 ## Detailed Instructions
 
-- [TypeScript Conventions](.opencode/docs/typescript.md)
-- [API & Error Handling Patterns](.opencode/docs/api-patterns.md)
-- [Architecture & MCP](.opencode/docs/architecture.md)
-- [Workflow (Git, Testing, Linting)](.opencode/docs/workflow.md)
+- [TypeScript Conventions](./docs/typescript.md)
+- [API & Error Handling Patterns](./docs/api-patterns.md)
+- [Architecture & MCP](./docs/architecture.md)
+- [Workflow (Git, Testing, Linting)](./docs/workflow.md)

@@ -3,11 +3,14 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import type { Config } from "../config.js"
 import { handleApiResponse, formatSuccessResponse } from "../api/api-utils.js"
 import { KeysAPI } from "../api/keys-api.js"
-import { listKeysInputSchema } from "../types.js"
-import type { IGetKeysResponse } from "../types.js"
+import type { InputSchemas, IGetKeysResponse } from "../types.js"
 import { resolveProjectId, withErrorHandling } from "./tool-utils.js"
 
-export function registerListKeys(server: McpServer, config: Config): void {
+export function registerListKeys(
+  server: McpServer,
+  config: Config,
+  inputSchema: InputSchemas["listKeys"],
+): void {
   const operation = "listing keys"
 
   server.registerTool(
@@ -21,7 +24,7 @@ export function registerListKeys(server: McpServer, config: Config): void {
         idempotentHint: true,
         openWorldHint: true,
       },
-      inputSchema: listKeysInputSchema,
+      inputSchema,
     },
     withErrorHandling(operation, async (args) => {
       const result = resolveProjectId(args as { project_id?: string }, config)
